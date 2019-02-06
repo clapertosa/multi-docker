@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t wolf91/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run wolf91/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t wolf91/multi-client ./client
+  - docker build -t wolf91/multi-nginx ./nginx
+  - docker build -t wolf91/multi-server ./server
+  - docker build -t wolf91/multi-worker ./worker
+  # Login to Docker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push wolf91/multi-client
+  - docker push wolf91/multi-nginx
+  - docker push wolf91/multi-server
+  - docker push wolf91/multi-worker
